@@ -1,0 +1,46 @@
+Assignment 4
+
+/* Level 4
+   -------
+A college needs to develop a system that tracks the Open Elective Subjects of their students. 
+During the start of the year a lot of students change their subjects and college wants to 
+preserve that entire timeline of the data. 
+*/
+
+CREATE PROCEDURE SubjectChangeRecord
+    @StudentId VARCHAR(20),
+    @SubjectId VARCHAR(20)
+AS
+BEGIN
+	-- Make the current alloted subject invalid i.e, Is_Valid = 0.
+
+        UPDATE SubjectAllotments
+        SET Is_Valid = 0
+        WHERE StudentId = @StudentId AND Is_Valid = 1;
+
+    -- Check whether the requested subject is in SubjectAllotments table or not.
+
+    IF EXISTS (SELECT 1 FROM SubjectAllotments WHERE StudentId = @StudentId AND SubjectId = @SubjectId)
+    BEGIN
+		-- Make the requested subject valid i.e, Is_Valid = 1.
+
+		UPDATE SubjectAllotments
+        SET Is_Valid = 1
+        WHERE StudentId = @StudentId AND SubjectId = @SubjectId;
+    END
+    ELSE
+    BEGIN
+        -- If the requested subject does not present then insert it.
+
+        INSERT INTO SubjectAllotments (StudentId, SubjectId, Is_Valid)
+        VALUES (@StudentId, @SubjectId, 1);
+    END
+
+    -- Finally insert the subject change request details in the SubjectRequests table
+
+    INSERT INTO SubjectRequests (StudentId, SubjectId)
+    VALUES (@StudentId, @SubjectId);
+END;
+
+
+EXEC SubjectChangeRecord @StudentId = '159103036', @SubjectId = 'PO1496';
